@@ -47,8 +47,8 @@ PRODUCT_PROPERTY_OVERRIDES := \
     ro.config.ringtone=Ring_Synth_04.ogg \
     ro.config.notification_sound=pixiedust.ogg
 
-# Put en_US first in the list, so make it default.
-PRODUCT_LOCALES := en_US
+# Put en_GB first in the list, so make it default.
+PRODUCT_LOCALES := en_GB
 
 # Get some sounds
 $(call inherit-product-if-exists, frameworks/base/data/sounds/AllAudio.mk)

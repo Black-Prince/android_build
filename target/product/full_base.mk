@@ -33,7 +33,8 @@ PRODUCT_PACKAGES += \
     NoiseField \
     PhaseBeam \
     VisualizationWallpapers \
-    PhotoTable
+    PhotoTable \
+    SunBeam 
 
 PRODUCT_PACKAGES += \
     libvideoeditor_jni \

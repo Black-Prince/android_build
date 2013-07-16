@@ -400,16 +400,7 @@ def WriteFullOTAPackage(input_zip, output_zip):
   device_specific.FullOTA_Assertions()
   device_specific.FullOTA_InstallBegin()
 
-  script.ShowProgress(0.2, 0)
-  script.Print("")
-  script.Print("************************************************")
-  script.Print("*                                              *")
-  script.Print("*             Team Horizon Presents            *")
-  script.Print("*                    XenonHD                   *")
-  script.Print("************************************************")
-  script.Print("")
-  script.Print("Prepare to broaden your horizon!")
-  script.Print("Welcome to Xenon HD") 
+  script.ShowProgress(0.5, 0)
 
   if OPTIONS.wipe_user_data:
     script.FormatPartition("/data")

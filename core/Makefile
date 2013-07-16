@@ -1,14 +1,13 @@
 # Put some miscellaneous rules here
 
 # Build system colors
+#
+# PFX: Prefix "target C++:" in yellow
+# INS: Module "Install:" output color (cyan for ics)
 
 ifneq ($(BUILD_WITH_COLORS),0)
-  CL_RED="\033[31m"
-  CL_GRN="\033[32m"
-  CL_YLW="\033[33m"
-  CL_BLU="\033[34m"
-  CL_MAG="\033[35m"
-  CL_CYN="\033[36m"
+  CL_PFX="\033[33m"
+  CL_INS="\033[36m"
   CL_RST="\033[0m"
 endif
 
@@ -16,9 +15,9 @@ endif
 ifneq "" "$(filter eng.%,$(BUILD_NUMBER))"
   # BUILD_NUMBER has a timestamp in it, which means that
   # it will change every time.  Pick a stable value.
-  FILE_NAME_TAG := $(SUPERNEXUS_BUILD_VERSION)
+  FILE_NAME_TAG := eng.$(USER)
 else
-  FILE_NAME_TAG := $(SUPERNEXUS_BUILD_VERSION)
+  FILE_NAME_TAG := $(BUILD_NUMBER)
 endif
 
 is_tests_build := $(filter tests,$(MAKECMDGOALS))
@@ -1287,7 +1286,7 @@ name := $(TARGET_PRODUCT)
 ifeq ($(TARGET_BUILD_TYPE),debug)
   name := $(name)_debug
 endif
-name := SuperNexus-$(SUPERNEXUS_VERSION_MAJOR).$(SUPERNEXUS_VERSION_MINOR)-$(name)-$(FILE_NAME_TAG)
+name := $(name)-ota-$(FILE_NAME_TAG)
 
 INTERNAL_OTA_PACKAGE_TARGET := $(PRODUCT_OUT)/$(name).zip
 
@@ -1305,17 +1304,30 @@ else
     $(INTERNAL_OTA_PACKAGE_TARGET): override_device := $(TARGET_OTA_ASSERT_DEVICE)
 endif
 
+ifeq ($(TARGET_OTA_ASSERT_SKIP),true)
+    $(INTERNAL_OTA_PACKAGE_TARGET): skip_assert := true
+else
+    $(INTERNAL_OTA_PACKAGE_TARGET): skip_assert := false
+endif
+
 $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(DISTTOOLS)
-	@echo -e ${CL_YLW}"Package OTA:"${CL_RST}" $@"
+	@echo "Package OTA: $@"
 	$(OTA_FROM_TARGET_SCRIPT) -v \
 	   -p $(HOST_OUT) \
 	   -k $(KEY_CERT_PAIR) \
+	   --no_assert=$(skip_assert) \
 	   --override_device=$(override_device) \
 	   $(BUILT_TARGET_FILES_PACKAGE) $@
 
-.PHONY: otapackage
+.PHONY: otapackage bacon
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
-
+bacon: otapackage
+ifneq ($(TARGET_CUSTOM_RELEASETOOL),)
+	@echo "Running releasetool"
+	$(hide) OTAPACKAGE=$(INTERNAL_OTA_PACKAGE_TARGET) $(TARGET_CUSTOM_RELEASETOOL)
+else
+	$(hide) ./vendor/xenonhd/tools/squisher
+endif
 # -----------------------------------------------------------------
 # The update package
 
@@ -1339,9 +1351,8 @@ ifeq ($(TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT),)
 else
     IMG_FROM_TARGET_SCRIPT := $(TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT)
 endif
-
 $(INTERNAL_UPDATE_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(DISTTOOLS)
-	@echo -e ${CL_YLW}"Package:"${CL_RST}" $@"
+	@echo "Package: $@"
 	$(IMG_FROM_TARGET_SCRIPT) -v \
 	   -s $(extensions) \
 	   -p $(HOST_OUT) \
